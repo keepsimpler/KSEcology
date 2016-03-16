@@ -1,0 +1,15 @@
+Package: KSEcology
+Type: Package
+Title: Functions of Ecology from KeepSimpler
+Version: 0.1
+Date: 2016-01-28
+Author: KeepSimpler
+Maintainer: KeepSimpler <fengwenfeng@gmail.com>
+Description:
+Imports:
+    deSolve (>= 1.10-8),
+    rootSolve (>= 1.6.5),
+    plyr (>= 1.8.1),
+    igraph (>= 0.7.1)
+License: What license is it under?
+LazyData: TRUE
