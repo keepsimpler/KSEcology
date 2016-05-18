@@ -1,0 +1,8 @@
+cat("Welcome to this project.\n")
+require(KSEcology)
+require(igraph)
+require(deSolve)
+require(rootSolve)
+require(plyr)
+require(reshape2)
+require(ggplot2)
