@@ -2,15 +2,15 @@
 
 #' @title generate the adjacency matrix of a kind of competition-cooperation-mixed network. The competition part and cooperation part are mixed with each other.
 #' @description Unlike \code{gen_competition_cooperation_bipartite}, the competition part and cooperation part can not be generated separately. Instead, a random graph is generated first, then randomly assign competition(--) or cooperation(++) to each interaction according to their proportions.
-#' @param s species number
+#' @param n species number
 #' @param k average degree(number of interactions) of species
 #' @param type network types: 'gnm', 'sf', ...
 #' @param pc proportion of competition interactions
-gen_competition_cooperation_unipartite <- function(s, k, type, pc, ...) {
+gen_competition_cooperation_unipartite <- function(n, k, type, pc, ...) {
   stopifnot(pc >= 0., pc <= 1.)
-  G = gen_connected_graph(s, k, type, ...)  # generate a connected graph
+  G = gen_connected_graph(n, k, type, ...)  # generate a connected graph
   graph = as.matrix(get.adjacency(G))  # transform to matrix form
-  # split the graph to three sub-graph - competition and mutualism graphs according to the probability of occurance of three different types of interactions
+  # split the graph to two sub-graphs - competition and mutualism graphs according to the probability of occurance of two different types of interactions
   # adjacency matrix is symmetric, first erase the lower-tringle
   graph[lower.tri(graph)] <- 0
   ps = runif(sum(graph))

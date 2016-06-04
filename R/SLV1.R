@@ -1,10 +1,10 @@
 #####################################################################
 # Simulation of  Stochastic LV1 model process
 # dX = X (\Alpha + \Theta X) dt + X \Sigma dW
-# \Alpha + \Theta X is the drift vector, which include:
+# X (\Alpha + \Theta X) is the drift vector, which include:
 #   \Alpha - vector of intrinsic growth rates
 #   \Theta - matrix of (mutualistic/competitive) interactions
-# \Sigma is the diffusion matrix, we assume it's a diagonal matrix
+# X \Sigma is the diffusion matrix, we assume it's a diagonal matrix
 # W is a vector of Wiener process
 
 
@@ -28,10 +28,17 @@ set_drift_slv1 <- function(m) {
 #' @param m dimension of variables
 #' @return diffusion matrix of SLV1 process
 #' @example c('sigma1*x1', '0', '0', 'sigma2*x2')
-set_diffusion_slv1 <- function(m) {
+set_diffusion_slv1_geometric <- function(m) {
   apply(diag(1:m), c(1, 2), function(ij)
     if (ij != 0)
       paste('sigma', ij, '*x', ij, sep = '')
+    else '0'
+  )
+}
+set_diffusion_slv1_wiener <- function(m) {
+  apply(diag(1:m), c(1, 2), function(ij)
+    if (ij != 0)
+      paste('sigma', ij, sep = '')
     else '0'
   )
 }
@@ -56,25 +63,28 @@ set_true_parameters_slv1 <- function(m, Alpha, Theta, Sigma) {
 }
 
 
-# return a 3 dimensional array:
-# first dimension: simnum, number of simulations
-# second dimension: t+1, the simulating steps of one simulation
-# third dimension: m, the dimensions of multivariates
-sim_slv1 <- function(m, Alpha, Theta, Sigma, Xinit, steps = 10000, stepwise = 0.01) {
-  grid = setSampling(Terminal = steps * stepwise, n = steps)
+sim_slv1 <- function(m, Alpha, Theta, Sigma, diffusion.type = 'wiener', Xinit, steps = 10000, stepwise = 0.01) {
+  # set model
   drift = set_drift_slv1(m)
-  diffusion = set_diffusion_slv1(m)
+  if (diffusion.type == 'wiener') {
+    diffusion = set_diffusion_slv1_wiener(m)
+  }
+  else if (diffusion.type == 'geometric') {
+    diffusion = set_diffusion_slv1_geometric(m)
+  }
+  else
+    stop('Please assign a proper diffusion type: wiener process or geometric brownian motion.')
   solve.variable = set_solve_variables(m)
-  mod.slv1 = setModel(drift = drift, diffusion = diffusion, solve.variable = solve.variable, state.variable = solve.variable, xinit = Xinit)
+  mod.slv1 = setModel(drift = drift, diffusion = diffusion, solve.variable = solve.variable, state.variable = solve.variable)
+  # set sampling
+  samples = setSampling(Terminal = steps * stepwise, n = steps)
+  # initialize yuima object
+  yuima.slv1 <- setYuima(model = mod.slv1, sampling = samples)
+  # assign values for parameters
   parameters = set_true_parameters_slv1(m, Alpha, Theta, Sigma)
-  slv1.out = simulate(mod.slv1, true.parameter = parameters, sampling = grid)
-  slv1.out
-  # Xs = laply(1:simnum, function(i) {
-  #   print(i)
-  #   X = simulate(mod3, true.parameter = parameters, sampling = grid)
-  #   matrix(X@data@original.data, ncol = m)
-  # })
-  # Xs
+  # simulate and update yuima object
+  yuima.slv1 = simulate(yuima.slv1, true.parameter = parameters, xinit = Xinit)
+  yuima.slv1
 }
 
 

@@ -16,11 +16,57 @@ plot_ode_output_1 <- function(out) {
   matplot(out.nstars, type = 'l', lwd = 1.8, xlab = 'Steps of gradual pressure', ylab = 'Abundances of species')
 }
 
+#' @title ggplot function to plot equilibrium trajectory under press
+#' @param out output of press simulation
+ggplot_ode_output_1 <- function(out, title = NULL, reverse = FALSE) {
+  out.nstars = laply(out, function(one) {
+    one$nstar
+  })
+  n <- dim(out.nstars)[2]
+  out.nstars <- data.frame(out.nstars)
+  require(reshape2)
+  # reshape to a long format
+  out.nstars$c <- sapply(out, function(one) one$params$C[1,2])
+  out.nstars.long <- melt(data = out.nstars, id.vars = 'c')
+  p <-
+  ggplot(out.nstars.long, aes(x = c,y = value, group = variable, colour = variable, lty = variable)) +
+    geom_line(size = 1.) + theme_bw() +
+#    scale_colour_manual(name = 'ews', values = gg_color_hue(n)) +
+    labs(title = title, x = 'Competitive Strength(c)', y = 'Species  Abundances') +
+    theme(legend.position = "none")
+  if (reverse == TRUE) {
+    p <- p + scale_x_reverse()
+  }
+  p
+}
+
 plot_ode_output_2 <- function(out, step) {
   ode.out <- out[[step]]$out
   matplot(ode.out[, -1], type = 'l', lwd = 1.8, xlab = 'Time', ylab = 'Abundances of species')
 
 }
+
+#' @title ggplot function to plot state trajactory under fixed parameters
+#' @param out output of press simulation
+#' @param step a step which fix the parameters
+ggplot_ode_output_2 <- function(out, step, title = NULL, timesteps = NULL) {
+  ode.out <- out[[step]]$out
+  ode.out <- data.frame(ode.out)
+  if (!is.null(timesteps) && timesteps > nrow(ode.out)) {
+    stop('Given time steps larger than the maximam value')
+  }
+  else {
+    ode.out <- ode.out[1:timesteps, ]
+  }
+  require(reshape2)
+  # reshape to a long format
+  ode.out.long <- melt(data = ode.out, id.vars = 'time')
+  ggplot(ode.out.long, aes(x = time,y = value, group = variable, colour = variable, lty = variable)) +
+    geom_line(size = 1.) + theme_bw() +
+    labs(title = title, x = 'Time  Steps', y = 'Species  Abundances') +
+    theme(legend.position = "none")
+}
+
 get_nstars <- function(out, steps) {
   out.nstars = laply(out[steps], function(one) {
     one$nstar

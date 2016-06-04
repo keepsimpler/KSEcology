@@ -46,10 +46,13 @@ perturb_competitive_strength <- function(params, nstar, beta1.delta.mu = 0.01, b
   diag(params$C) <- beta0 # restore the self-regulation
   # reestablish extinct species by simulating a immigration factor
   if (nstar.immigration > 0)
-    nstar[nstar == 0] <- nstar[nstar == 0] + nstar.immigration
+    nstar[nstar == 0] <- nstar[nstar == 0] +
+    runif2(length(nstar[nstar == 0]), nstar.immigration, 0.5 * nstar.immigration)
   # random perturb nstars
-  if (nstar.sd > 0)
+  if (nstar.sd > 0) {
+    set.seed(123) # fix the random number to check its influence
     nstar <- nstar * runif2(length(nstar), 1, nstar.sd)
+  }
   list(params = params, nstar = nstar)
 }
 
